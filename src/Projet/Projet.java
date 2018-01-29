@@ -30,11 +30,15 @@ public class Projet {
 		// TODO Auto-generated constructor stub
 		model = new Model();
 		solver = model.getSolver();
+		
+		//Premiere colonne est l'id; deuxieme la taille ; troisieme capacite
 		Navires= new int [NB_NAVIRES][3];
+		//Premiere colonne est l'id; deuxieme la capacite 
 		Grues= new int [NB_GRUES][2];
+		
+		
 		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, -1, NB_NAVIRES);
 		ouvriers=model.intVarMatrix(NB_OUVRIERS, NB_TRACE, -1, NB_OUVRIERS);
-		espace_quai=model.intVarMatrix(TAILLE_QUAI, NB_TRACE, -1,NB_NAVIRES);
 	}
 	
 	public void lireNavires() {
@@ -88,6 +92,13 @@ public class Projet {
 	public void lire() {
 		lireGrues();
 		lireNavires();
+	}
+	
+	public void constrainte1() {
+		for(int i=0;i<Navires.length;i++) {
+				Navires[i][1]=Navires[i][1]+2;
+		}
+		
 	}
 	public static void main(String[] args) {
 		Projet p=new Projet();
