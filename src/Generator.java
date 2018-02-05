@@ -1,4 +1,3 @@
-package generator;
 
 import java.io.File;
 import java.io.FileWriter;
