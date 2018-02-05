@@ -1,48 +1,48 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.util.tools.ArrayUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-
 public class Projet {
-
+	
 	private static final int NB_GRUES = 10;
 	private static final int NB_OUVRIERS = 10;
 	private static final int NB_NAVIRES = 4;
 	private static final int NB_TRACE = 60;
 	private static final int TAILLE_QUAI = 30;
-
+	
 	private int [][] Navires;
 	private int [][] Grues;
-
+	
 	private IntVar[][] grues;
 	private IntVar [] u;
 	private IntVar[][] ouvriers;
 	private IntVar[][] espace_quai;
 
-	private Model model;
+	private Model model;	
 	private Solver solver;
-
+	
 	public Projet() {
 		// TODO Auto-generated constructor stub
 		model = new Model();
 		solver = model.getSolver();
-
+		
 		//Premiere colonne est l'id; deuxieme la taille ; troisieme capacite
 		Navires= new int [NB_NAVIRES][3];
-		//Premiere colonne est l'id; deuxieme la capacite
+		//Premiere colonne est l'id; deuxieme la capacite 
 		Grues= new int [NB_GRUES][2];
-
-
+		
+		
 		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, -1, NB_NAVIRES-1);
 		u= model.intVarArray(NB_GRUES, 0, NB_TRACE);
 		//ouvriers=model.intVarMatrix(NB_OUVRIERS, NB_TRACE, -1, NB_OUVRIERS);
 		//espace_quai=model.intVarMatrix(TAILLE_QUAI, NB_TRACE, -1,NB_NAVIRES);
 	}
-
+	
 	public void lireNavires() {
 		File file = new File("./data/navires.csv");
 		BufferedReader buf;
@@ -62,12 +62,12 @@ public class Projet {
 				j++;
 				line = buf.readLine();
 			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public void lireGrues() {
 		File file = new File("./data/grues.csv");
 		BufferedReader buf;
@@ -86,21 +86,46 @@ public class Projet {
 				j++;
 				line = buf.readLine();
 			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public void lire() {
 		lireGrues();
 		lireNavires();
 	}
-
+	
+	public int[] naviresordo(){
+		int[] res = new int[Navires.length];
+		for(int i=0;i<Navires.length;i++){
+			res[i]=i;
+		}
+		int[] taillenav = new int[Navires.length];
+		for(int i=0;i<Navires.length;i++){
+			taillenav[i] = Navires[i][1];
+		}
+		for(int i = 0 ; i < Navires.length; i++){
+			for(int j = i+1 ; j < Navires.length; j++){
+				if(taillenav[i] < taillenav[j]){
+					int tempres=res[i];
+					res[i]=res[j];
+					res[j]=tempres;
+					int temptaille=taillenav[i];
+					taillenav[i]=taillenav[j];
+					taillenav[j]=temptaille;
+				}
+			}
+		}
+		System.out.println(res[0]+" "+res[1]+" "+res[2]+" "+res[3]+" ");
+		return res;
+	}
+	
 	// Contrainte pour assurer le dechargement des navieres
 	public void constraintb() {
 		for(int i=0;i<NB_NAVIRES;i++) {
-			IntVar[]sum=model.intVarArray(NB_GRUES,0, NB_TRACE);
+			IntVar[]sum=model.intVarArray(NB_GRUES, 0, NB_TRACE);
 			for(int j=0;j<grues.length;j++) {
 				IntVar aux= model.intVar(0, NB_TRACE);
 				model.count(i, grues[j], aux).post();
@@ -109,7 +134,7 @@ public class Projet {
 			model.scalar(sum, ArrayUtils.getColumn(Grues, 1), ">=", Navires[i][2]).post();
 		}
 	}
-
+	
 	// Contrainte pour assurer que la taille soit respecte
 	public void constrainte1() {
 		for(int j=0;j<grues[0].length;j++) {
@@ -126,9 +151,9 @@ public class Projet {
 				cc++;
 			}
 			model.scalar(sum, ArrayUtils.getColumn(Navires, 1), "<=", TAILLE_QUAI).post();
-		}
+		}		
 	}
-
+	
 	// Contrainte pour assurer que l'order des grues soit respecte
 	public void constrainte2() {
 		for(int i=0;i<grues[0].length;i++) {
@@ -138,7 +163,7 @@ public class Projet {
 			}
 		}
 	}
-
+	
 	public void utilisation() {
 		for(int i=0;i<grues.length;i++) {
 			IntVar[] c=model.intVarArray(NB_NAVIRES, 0, NB_TRACE);
@@ -157,14 +182,14 @@ public class Projet {
 		model.distance(min, max, "=", dist).post();
 		model.setObjective(Model.MINIMIZE, dist);
 	}
-
+	
 	public void constraints() {
 		constraintb();
 		constrainte1();
-//		constrainte2();
+		//constrainte2();
 		utilisation();
 	}
-
+	
 //	public void fo() {
 //		IntVar[] t= model.intVarArray(NB_GRUES, 0, NB_TRACE);
 //		for(int i=0;i<grues.length;i++) {
@@ -176,7 +201,7 @@ public class Projet {
 //		model.sum(t, "=", sumt).post();
 //		model.setObjective(Model.MINIMIZE, sumt);
 //	}
-
+	
 	public void print() {
 		for(int i=0;i<u.length;i++) {
 			System.out.println("Utilisation de la grue  "+ i +"  "+u[i]);
@@ -196,22 +221,22 @@ public class Projet {
 			}
 		}
 	}
-
+	
 	public void go() {
 		lire();
 		constraints();
 		//fo();
-		//solver.showSolutions();
+		//solver.showSolutions(); 
 		solver.findSolution();
 		solver.printStatistics();
-
+		
 		print();
 	}
-
 	public static void main(String[] args) {
 		try {
 			Projet p= new Projet();
-			p.go();
+			//p.go();
+			p.naviresordo();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
