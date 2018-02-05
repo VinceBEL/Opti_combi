@@ -89,6 +89,6 @@ public class Generator {
 
     public static void main(String[] args) {
         clearProblemData(2);
-//        new Generator(2, 5, 8).generate();
+        new Generator(2, 5, 8).generate();
     }
 }
