@@ -8,7 +8,7 @@ import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.variables.IntVar;
 
-public class Projet {
+public class Projett {
 	
 	private static final int NB_GRUES = 10;
 	private static final int NB_OUVRIERS = 10;
@@ -26,7 +26,7 @@ public class Projet {
 	private Model model;	
 	private Solver solver;
 	
-	public Projet() {
+	public Projett() {
 		// TODO Auto-generated constructor stub
 		model = new Model();
 		solver = model.getSolver();
