@@ -1,5 +1,3 @@
-package generator;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,6 +5,8 @@ import java.security.InvalidParameterException;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.random;
+import static java.util.Arrays.stream;
+import static java.util.stream.IntStream.range;
 
 public class Generator {
     private static final char SEPARATOR = ',';
@@ -15,9 +15,10 @@ public class Generator {
     private int idPb;
     private int nbNavires;
     private int nbGrues;
+    private int tailleQuai;
 
 
-    public Generator(int idPb, int nbNavires, int nbGrues) {
+    public Generator(int idPb, int nbNavires, int nbGrues, int tailleQuai) {
         if (nbNavires < 3 || nbNavires > 12) {
             throw new InvalidParameterException("nbNavires doit être compris entre 3 et 12. Valeur donnée : " + nbNavires);
         } else if (nbGrues < 6 || nbGrues > 10) {
@@ -26,6 +27,7 @@ public class Generator {
             this.idPb = idPb;
             this.nbNavires = nbNavires;
             this.nbGrues = nbGrues;
+            this.tailleQuai = tailleQuai;
         }
     }
 
@@ -42,6 +44,8 @@ public class Generator {
         FileWriter writer = new FileWriter(OUTPUT_DIRECTORY.concat("navires" + idPb).concat(".csv"));
         writer.write("id,taille,capacite\n");
 
+        int[] tailles = generateTaillesNavires();
+
         for (int i = 0; i < nbNavires; i++) {
             StringBuilder sb = new StringBuilder("" + i)
                     .append(SEPARATOR)
@@ -54,6 +58,30 @@ public class Generator {
         }
 
         writer.close();
+    }
+
+    private int[] generateTaillesNavires() {
+        int tailleMax = tailleQuai / 2;
+
+        int[] tailles = range(0, nbNavires)
+                .map(i -> (int) floor(random() * tailleMax))
+                .toArray();
+
+        int sommeTailles = stream(tailles)
+                .reduce((acc, val) -> acc + val)
+                .orElse(-1);
+
+        int randIndex;
+
+        while(sommeTailles > tailleQuai) {
+            randIndex = (int) floor(random() * nbNavires);
+            tailles[randIndex] --;
+            sommeTailles = stream(tailles)
+                    .reduce((acc, val) -> acc + val)
+                    .getAsInt();
+        }
+
+        return tailles;
     }
 
     private void generateGrues() throws IOException {
@@ -89,6 +117,6 @@ public class Generator {
 
     public static void main(String[] args) {
         clearProblemData(2);
-        new Generator(2, 5, 8).generate();
+        new Generator(2, 5, 8, 50).generate();
     }
 }
