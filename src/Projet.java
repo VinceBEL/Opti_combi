@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Collections;
 
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
@@ -97,6 +98,31 @@ public class Projet {
 		lireNavires();
 	}
 	
+	public int[] naviresordo(){
+		int[] res = new int[Navires.length];
+		for(int i=0;i<Navires.length;i++){
+			res[i]=i;
+		}
+		int[] taillenav = new int[Navires.length];
+		for(int i=0;i<Navires.length;i++){
+			taillenav[i] = Navires[i][1];
+		}
+		for(int i = 0 ; i < Navires.length; i++){
+			for(int j = i+1 ; j < Navires.length; j++){
+				if(taillenav[i] < taillenav[j]){
+					int tempres=res[i];
+					res[i]=res[j];
+					res[j]=tempres;
+					int temptaille=taillenav[i];
+					taillenav[i]=taillenav[j];
+					taillenav[j]=temptaille;
+				}
+			}
+		}
+		System.out.println(res[0]+" "+res[1]+" "+res[2]+" "+res[3]+" ");
+		return res;
+	}
+	
 	// Contrainte pour assurer le dechargement des navieres
 	public void constraintb() {
 		for(int i=0;i<NB_NAVIRES;i++) {
@@ -161,7 +187,7 @@ public class Projet {
 	public void constraints() {
 		constraintb();
 		constrainte1();
-		constrainte2();
+		//constrainte2();
 		utilisation();
 	}
 	
@@ -210,7 +236,8 @@ public class Projet {
 	public static void main(String[] args) {
 		try {
 			Projet p= new Projet();
-			p.go();
+			//p.go();
+			p.naviresordo();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
