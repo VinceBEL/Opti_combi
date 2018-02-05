@@ -1,11 +1,6 @@
-
-
-import static org.chocosolver.solver.search.strategy.Search.activityBasedSearch;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.lang.reflect.Array;
 
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
@@ -17,7 +12,7 @@ public class Projet {
 	private static final int NB_GRUES = 10;
 	private static final int NB_OUVRIERS = 10;
 	private static final int NB_NAVIRES = 4;
-	private static final int NB_TRACE = 32;
+	private static final int NB_TRACE = 60;
 	private static final int TAILLE_QUAI = 30;
 	
 	private int [][] Navires;
