@@ -16,14 +16,16 @@ public class Projet {
 	private static final int NB_NAVIRES = 4;
 	private static final int NB_TRACE = 15;
 	private static final int TAILLE_QUAI = 40;
+	private static final int NB_OUVRIERS = 12;
 	
 	private int [][] Navires;
 	private int [][] Grues;
-	IntVar[]sum;
-	IntVar[]cont;
+	private IntVar[]sum;
+	private IntVar[]cont;
 	private IntVar[][] grues;
+	private IntVar[][] ouvriers;
 	private IntVar[] taille;
-	IntVar[] decht;
+	private IntVar[] decht;
 
 	private Model model;	
 	
@@ -40,6 +42,7 @@ public class Projet {
 		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, -1, NB_NAVIRES-1);
 		taille=model.intVarArray(NB_TRACE,0, TAILLE_QUAI);
 		decht=model.intVarArray(NB_NAVIRES, 0, NB_GRUES*NB_NAVIRES*NB_TRACE);
+		ouvriers=model.boolVarMatrix(NB_OUVRIERS, NB_TRACE);
 	}
 	
 	public void lireNavires() {
@@ -136,6 +139,23 @@ public class Projet {
 			}
 		}
 	}
+	//Constrainte pour gerer les ouvriers
+	public void constrainte3() {
+		for (int i = 0; i < ouvriers[0].length; i++) {
+			IntVar[] auxg=ArrayUtils.getColumn(grues, i);
+			IntVar[] auxo=ArrayUtils.getColumn(ouvriers, i);
+			
+			IntVar [] auxc=model.intVarArray(NB_NAVIRES, 0,NB_GRUES);
+			for (int j = 0; j < NB_NAVIRES; j++) {
+				model.count(j, auxg, auxc[j]).post();
+			}
+			IntVar auxs=model.intVar(0, NB_GRUES*NB_NAVIRES);
+			model.sum(auxc, "=", auxs).post();
+			IntVar auxcu=model.intVar(0, NB_GRUES*NB_NAVIRES);
+			model.count(1, auxo, auxcu).post();
+			model.arithm(auxs, "=", auxcu).post();
+		}
+	}
 	
 	public void fo() {
 		IntVar[] cdmu=model.intVarArray(NB_NAVIRES, 0, NB_TRACE);
@@ -151,6 +171,7 @@ public class Projet {
 		constraintb();
 		constrainte1();
 		constrainte2();
+		constrainte3();
 		fo();
 	}
 		
@@ -174,7 +195,7 @@ public class Projet {
 	public void go() {
 		lire();
 		constraints();
-		int tot = NB_GRUES*NB_TRACE+NB_TRACE;
+		int tot = NB_GRUES*NB_TRACE+NB_TRACE+NB_OUVRIERS*NB_TRACE;
 		IntVar[] vars = new IntVar[tot];
 		int c = 0;
 		for (int i = 0; i < grues.length; i++) {
@@ -186,6 +207,12 @@ public class Projet {
 		for (int i = 0; i < taille.length; i++) {
 			vars[c]=taille[i];
 			c++;
+		}
+		for (int i = 0; i < ouvriers.length; i++) {
+			for (int j = 0; j < ouvriers[0].length; j++) {
+				vars[c]=ouvriers[i][j];
+				c++;
+			}
 		}
 		solver.setSearch(activityBasedSearch(vars));
 		//solver.showStatisticsDuringResolution(2000);
