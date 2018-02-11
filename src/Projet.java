@@ -221,10 +221,6 @@ public class Projet {
 			}
 			System.out.println("-------------");
 		}
-		
-		for (int i = 0; i < auxd.length; i++) {
-			System.out.println(auxd[i].getValue());
-		}
 	}
 	
 	public void go() {
