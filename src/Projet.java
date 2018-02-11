@@ -8,6 +8,7 @@ import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
+import org.chocosolver.util.criteria.Criterion;
 import org.chocosolver.util.tools.ArrayUtils;
 
 public class Projet {
@@ -26,6 +27,9 @@ public class Projet {
 	private IntVar[][] ouvriers;
 	private IntVar[] taille;
 	private IntVar[] decht;
+	IntVar [] auxd;
+	IntVar total;
+	int iter=0;
 
 	private Model model;	
 	
@@ -39,10 +43,12 @@ public class Projet {
 		//Premiere colonne est l'id; deuxieme la capacite 
 		Grues= new int [NB_GRUES][2];
 		
-		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, -1, NB_NAVIRES-1);
+		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, 0, NB_NAVIRES);
 		taille=model.intVarArray(NB_TRACE,0, TAILLE_QUAI);
 		decht=model.intVarArray(NB_NAVIRES, 0, NB_GRUES*NB_NAVIRES*NB_TRACE);
 		ouvriers=model.boolVarMatrix(NB_OUVRIERS, NB_TRACE);
+		auxd=model.intVarArray(NB_TRACE, 0, NB_TRACE);
+		total=model.intVar(0, 9999999);
 	}
 	
 	public void lireNavires() {
@@ -167,11 +173,36 @@ public class Projet {
 		model.setObjective(false, sum);
 	}
 	
+	public void fo2() {
+		for (int i = 0; i < grues[0].length; i++) {
+			Constraint oui=model.arithm(auxd[i], "=", i);
+			Constraint non=model.arithm(auxd[i], "=", 0);
+			Constraint[] traces= new Constraint[NB_GRUES+1];
+			Constraint[] traces2= new Constraint[NB_GRUES+1];
+			for (int j = 0; j < grues.length; j++) {
+				Constraint aux= model.arithm(grues[j][i], "=", 4);
+				Constraint aux2= model.arithm(grues[j][i], "<", 4);
+				traces[j]=aux;
+				traces2[j]=aux2;
+			}
+			traces[grues.length]=oui;
+			traces2[grues.length]=non;
+			model.or(model.and(traces),model.and(traces2)).post();
+		}
+		int [] auxdm=new int[NB_TRACE];
+		for (int i = 0; i < auxd.length; i++) {
+			auxdm[i]=i*i;
+		}
+		model.scalar(auxd, auxdm, "=", total).post();
+		model.setObjective(true, total);
+	}
+	
 	public void constraints() {
 		constraintb();
 		constrainte1();
 		constrainte2();
 		constrainte3();
+		fo2();
 		fo();
 	}
 		
@@ -184,25 +215,33 @@ public class Projet {
 		for(int i=0;i<grues[0].length;i++) {
 			System.out.println("Dans la trace "+i+ " le espace utilise est: "+ taille[i].getValue());
 			for(int j=0;j<grues.length;j++) {
-				if(grues[j][i].getValue()>-1) {
+				if(grues[j][i].getValue()<4) {
 					System.out.println("La grue "+j+" atiende a le naviere "+ grues[j][i].getValue());
 				}
 			}
 			System.out.println("-------------");
+		}
+		
+		for (int i = 0; i < auxd.length; i++) {
+			System.out.println(auxd[i].getValue());
 		}
 	}
 	
 	public void go() {
 		lire();
 		constraints();
-		int tot = NB_GRUES*NB_TRACE+NB_TRACE+NB_OUVRIERS*NB_TRACE;
+		int tot = NB_GRUES*NB_TRACE+NB_TRACE+NB_OUVRIERS*NB_TRACE+NB_TRACE;
 		IntVar[] vars = new IntVar[tot];
 		int c = 0;
-		for (int i = 0; i < grues.length; i++) {
-			for (int j = 0; j < grues[0].length; j++) {
-				vars[c]=grues[i][j];
+		for (int i = 0; i < grues[0].length; i++) {
+			for (int j = 0; j < grues.length; j++) {
+				vars[c]=grues[j][i];
 				c++;
 			}
+		}
+		for (int i = 0; i < auxd.length; i++) {
+			vars[c]=auxd[i];
+			c++;
 		}
 		for (int i = 0; i < taille.length; i++) {
 			vars[c]=taille[i];
@@ -215,7 +254,7 @@ public class Projet {
 			}
 		}
 		solver.setSearch(activityBasedSearch(vars));
-		//solver.showStatisticsDuringResolution(2000);
+		solver.showStatisticsDuringResolution(2000);
 		solver.findSolution();
 		//solver.printStatistics();
 		print();
