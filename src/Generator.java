@@ -9,6 +9,22 @@ import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
 
 public class Generator {
+
+    public static void main(String[] args) {
+        final int ID_PB = 2;
+        final int NB_NAVIRES = 10;
+        final int NB_GRUES = 8;
+        final int TAILLE_QUAI = 50;
+
+
+        clearProblemFiles(2);
+        new Generator(ID_PB, NB_NAVIRES, NB_GRUES, TAILLE_QUAI)
+                .generate();
+    }
+
+
+
+
     private static final char SEPARATOR = ',';
     private static final String OUTPUT_DIRECTORY = System.getProperty("user.dir").concat("/data/");
 
@@ -105,15 +121,17 @@ public class Generator {
         writer.close();
     }
 
-    private static int randomValue(int maxVal) {
-        return (int) floor(random() * maxVal);
-    }
+
 
     private static int randomValue(int minVal, int maxVal) {
         return minVal + randomValue(maxVal - minVal);
     }
 
-    public static void clearProblemFiles(int idPb) {
+    private static int randomValue(int maxVal) {
+        return (int) floor(random() * maxVal);
+    }
+
+    private static void clearProblemFiles(int idPb) {
         String[] names = new String[]{"navires", "grues"};
 
         for (String name : names) {
@@ -126,17 +144,5 @@ public class Generator {
                 System.out.println("Failed to delete the file ".concat(fileName));
             }
         }
-    }
-
-    public static void main(String[] args) {
-        final int ID_PB = 2;
-        final int NB_NAVIRES = 10;
-        final int NB_GRUES = 8;
-        final int TAILLE_QUAI = 50;
-
-
-        clearProblemFiles(2);
-        new Generator(ID_PB, NB_NAVIRES, NB_GRUES, TAILLE_QUAI)
-                .generate();
     }
 }
