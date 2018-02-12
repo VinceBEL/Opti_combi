@@ -61,7 +61,7 @@ public class Generator {
     }
 
     private int[] generateTaillesNavires() {
-        int tailleMax = (int) floor(3.0 * tailleQuai / 4.0);
+        int tailleMax = (int) floor(2.0 * tailleQuai / 3.0);
 
         int[] tailles = range(0, nbNavires)
                 .map(i -> (int) (2 + floor(random() * (tailleMax - 2))))
@@ -105,7 +105,7 @@ public class Generator {
         writer.close();
     }
 
-    public static void clearProblemData(int idPb) {
+    public static void clearProblemFiles(int idPb) {
         String[] names = new String[]{"navires", "grues"};
 
         for (String name : names) {
@@ -124,10 +124,10 @@ public class Generator {
         final int ID_PB = 2;
         final int NB_NAVIRES = 10;
         final int NB_GRUES = 8;
-        final int TAILLE_QUAI = 100;
+        final int TAILLE_QUAI = 50;
 
 
-        clearProblemData(2);
+        clearProblemFiles(2);
         new Generator(ID_PB, NB_NAVIRES, NB_GRUES, TAILLE_QUAI)
                 .generate();
     }
