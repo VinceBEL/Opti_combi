@@ -1,46 +1,53 @@
+import static org.chocosolver.solver.search.strategy.Search.activityBasedSearch;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
+import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.util.tools.ArrayUtils;
 
 public class Projet {
 	
 	private static final int NB_GRUES = 10;
-	private static final int NB_OUVRIERS = 10;
-	private static final int NB_NAVIRES = 4;
-	private static final int NB_TRACE = 60;
-	private static final int TAILLE_QUAI = 30;
+	private static final int NB_NAVIRES = 5;
+	private static final int NB_TRACE = 72;
+	private static final int TAILLE_QUAI = 50;
+	private static final int NB_OUVRIERS = 12;
 	
 	private int [][] Navires;
 	private int [][] Grues;
-	
+	private IntVar[]sum;
+	private IntVar[]cont;
 	private IntVar[][] grues;
-	private IntVar [] u;
 	private IntVar[][] ouvriers;
-	private IntVar[][] espace_quai;
+	private IntVar[] taille;
+	private IntVar[] decht;
+	IntVar [] auxd;
+	IntVar total;
+	int iter=0;
 
 	private Model model;	
+	
 	private Solver solver;
 	
 	public Projet() {
-		// TODO Auto-generated constructor stub
 		model = new Model();
 		solver = model.getSolver();
-		
 		//Premiere colonne est l'id; deuxieme la taille ; troisieme capacite
 		Navires= new int [NB_NAVIRES][3];
 		//Premiere colonne est l'id; deuxieme la capacite 
 		Grues= new int [NB_GRUES][2];
 		
-		
-		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, -1, NB_NAVIRES-1);
-		u= model.intVarArray(NB_GRUES, 0, NB_TRACE);
-		//ouvriers=model.intVarMatrix(NB_OUVRIERS, NB_TRACE, -1, NB_OUVRIERS);
-		//espace_quai=model.intVarMatrix(TAILLE_QUAI, NB_TRACE, -1,NB_NAVIRES);
+		grues=model.intVarMatrix(NB_GRUES, 	NB_TRACE, 0, NB_NAVIRES);
+		taille=model.intVarArray(NB_TRACE,0, TAILLE_QUAI);
+		decht=model.intVarArray(NB_NAVIRES, 0, NB_GRUES*NB_NAVIRES*NB_TRACE);
+		ouvriers=model.boolVarMatrix(NB_OUVRIERS, NB_TRACE);
+		auxd=model.intVarArray(NB_TRACE, 0, NB_TRACE);
+		total=model.intVar(0, 9999999);
 	}
 	
 	public void lireNavires() {
@@ -97,60 +104,34 @@ public class Projet {
 		lireNavires();
 	}
 	
-	public int[] naviresordo(){
-		int[] res = new int[Navires.length];
-		for(int i=0;i<Navires.length;i++){
-			res[i]=i;
-		}
-		int[] taillenav = new int[Navires.length];
-		for(int i=0;i<Navires.length;i++){
-			taillenav[i] = Navires[i][1];
-		}
-		for(int i = 0 ; i < Navires.length; i++){
-			for(int j = i+1 ; j < Navires.length; j++){
-				if(taillenav[i] < taillenav[j]){
-					int tempres=res[i];
-					res[i]=res[j];
-					res[j]=tempres;
-					int temptaille=taillenav[i];
-					taillenav[i]=taillenav[j];
-					taillenav[j]=temptaille;
-				}
-			}
-		}
-		System.out.println(res[0]+" "+res[1]+" "+res[2]+" "+res[3]+" ");
-		return res;
-	}
-	
 	// Contrainte pour assurer le dechargement des navieres
+	
 	public void constraintb() {
 		for(int i=0;i<NB_NAVIRES;i++) {
-			IntVar[]sum=model.intVarArray(NB_GRUES, 0, NB_TRACE);
+			IntVar[]aux=model.intVarArray(NB_GRUES, 0, NB_TRACE*NB_GRUES*NB_NAVIRES);
 			for(int j=0;j<grues.length;j++) {
-				IntVar aux= model.intVar(0, NB_TRACE);
-				model.count(i, grues[j], aux).post();
-				model.arithm(sum[j], "=", aux).post();
+				model.count(i, grues[j], aux[j]).post();
 			}
-			model.scalar(sum, ArrayUtils.getColumn(Grues, 1), ">=", Navires[i][2]).post();
+			model.scalar(aux, ArrayUtils.getColumn(Grues, 1), ">=", Navires[i][2]).post();
+			model.scalar(aux, ArrayUtils.getColumn(Grues, 1), "=", decht[i]).post();
 		}
 	}
 	
 	// Contrainte pour assurer que la taille soit respecte
 	public void constrainte1() {
+		IntVar un=model.intVar(1);
 		for(int j=0;j<grues[0].length;j++) {
 			IntVar[]aux= ArrayUtils.getColumn(grues, j);
-			IntVar[]sum=model.intVarArray(NB_NAVIRES, 0, NB_GRUES);
-			int cc=0;
+			sum=model.intVarArray(NB_NAVIRES, 0, NB_GRUES);
+			cont=model.intVarArray(NB_NAVIRES, 0, 1);
 			for(int i=0;i<NB_NAVIRES;i++) {
-				IntVar c=model.intVar(0, NB_GRUES);
-				model.count(Navires[i][0], aux, c).post();
+				model.count(i, aux,sum[i]).post();
 				IntVar divisor=model.intVar(1, NB_GRUES);
-				model.max(divisor, c, model.intVar(1)).post();
-				model.div(c,divisor, c).post();
-				sum[cc]=c;
-				cc++;
+				model.max(divisor, sum[i],un).post();
+				model.div(sum[i],divisor, cont[i]).post();
 			}
-			model.scalar(sum, ArrayUtils.getColumn(Navires, 1), "<=", TAILLE_QUAI).post();
+			model.scalar(cont, ArrayUtils.getColumn(Navires, 1), "<=", TAILLE_QUAI).post();
+			model.scalar(cont, ArrayUtils.getColumn(Navires, 1), "=", taille[j]).post();
 		}		
 	}
 	
@@ -163,80 +144,121 @@ public class Projet {
 			}
 		}
 	}
-	
-	public void utilisation() {
-		for(int i=0;i<grues.length;i++) {
-			IntVar[] c=model.intVarArray(NB_NAVIRES, 0, NB_TRACE);
-			for(int j=0;j<NB_NAVIRES;j++) {
-				IntVar aux=model.intVar(0, NB_TRACE);
-				model.count(j, grues[i], aux).post();
-				c[j]=aux;
+	//Constrainte pour gerer les ouvriers
+	public void constrainte3() {
+		for (int i = 0; i < ouvriers[0].length; i++) {
+			IntVar[] auxg=ArrayUtils.getColumn(grues, i);
+			IntVar[] auxo=ArrayUtils.getColumn(ouvriers, i);
+			
+			IntVar [] auxc=model.intVarArray(NB_NAVIRES, 0,NB_GRUES);
+			for (int j = 0; j < NB_NAVIRES; j++) {
+				model.count(j, auxg, auxc[j]).post();
 			}
-			model.sum(c, "=", u[i]).post();
+			IntVar auxs=model.intVar(0, NB_GRUES*NB_NAVIRES);
+			model.sum(auxc, "=", auxs).post();
+			IntVar auxcu=model.intVar(0, NB_GRUES*NB_NAVIRES);
+			model.count(1, auxo, auxcu).post();
+			model.arithm(auxs, "=", auxcu).post();
 		}
-		IntVar min= model.intVar(0, NB_TRACE);
-		model.min(min, u).post();
-		IntVar max= model.intVar(0, NB_TRACE);
-		model.max(max, u).post();
-		IntVar dist= model.intVar(0, NB_TRACE);
-		model.distance(min, max, "=", dist).post();
-		model.setObjective(Model.MINIMIZE, dist);
+	}
+	
+	//Function Objective pour diminuer le travail sur les navieres
+	public void fo() {
+		IntVar[] cdmu=model.intVarArray(NB_NAVIRES, 0, NB_TRACE);
+		for (int i = 0; i < Navires.length; i++) {
+			model.arithm(decht[i], "-", model.intVar(Navires[i][2]), "=", cdmu[i]).post();
+		}
+		IntVar sum= model.intVar(0, 99999999);
+		model.sum(cdmu, "=", sum).post();
+		model.setObjective(false, sum);
+	}
+	//Function Objective pour diminuer les traces utilises 
+	public void fo2() {
+		for (int i = 0; i < grues[0].length; i++) {
+			Constraint oui=model.arithm(auxd[i], "=", i);
+			Constraint non=model.arithm(auxd[i], "=", 0);
+			Constraint[] traces= new Constraint[NB_GRUES+1];
+			Constraint[] traces2= new Constraint[NB_GRUES+1];
+			for (int j = 0; j < grues.length; j++) {
+				Constraint aux= model.arithm(grues[j][i], "=", NB_NAVIRES);
+				Constraint aux2= model.arithm(grues[j][i], "<", NB_NAVIRES);
+				traces[j]=aux;
+				traces2[j]=aux2;
+			}
+			traces[grues.length]=oui;
+			traces2[grues.length]=non;
+			model.or(model.and(traces),model.and(traces2)).post();
+		}
+		int [] auxdm=new int[NB_TRACE];
+		for (int i = 0; i < auxd.length; i++) {
+			auxdm[i]=i*i;
+		}
+		model.scalar(auxd, auxdm, "=", total).post();
+		model.setObjective(true, total);
 	}
 	
 	public void constraints() {
 		constraintb();
 		constrainte1();
-		//constrainte2();
-		utilisation();
+		constrainte2();
+		constrainte3();
+		fo2();
+		fo();
 	}
-	
-//	public void fo() {
-//		IntVar[] t= model.intVarArray(NB_GRUES, 0, NB_TRACE);
-//		for(int i=0;i<grues.length;i++) {
-//			IntVar aux=model.intVar(0, NB_TRACE);
-//			model.count(-1, grues[i], aux).post();
-//			t[i]=aux;
-//		}
-//		IntVar sumt=model.intVar(0,NB_GRUES*NB_TRACE*NB_NAVIRES);
-//		model.sum(t, "=", sumt).post();
-//		model.setObjective(Model.MINIMIZE, sumt);
-//	}
-	
+		
 	public void print() {
-		for(int i=0;i<u.length;i++) {
-			System.out.println("Utilisation de la grue  "+ i +"  "+u[i]);
+		
+		for(int i=0;i<decht.length;i++) {
+			System.out.println("Le total decharge sur le naviere "+i+" est de : "+decht[i].getValue()+" sur un total de: "+Navires[i][2]);
 		}
-		System.out.println("------------------------");
-		boolean imp=false;
-		for(int i=0;i<grues.length;i++) {
-			imp=false;
-			for(int j=0;j<grues[0].length;j++) {
-				if(grues[i][j].getValue()>-1) {
-					System.out.print(grues[i][j]+"  ");
-					imp=true;
+		System.out.println("-------------");
+		for(int i=0;i<grues[0].length;i++) {
+			System.out.println("Dans la trace "+i+ " le espace utilise est: "+ taille[i].getValue());
+			for(int j=0;j<grues.length;j++) {
+				if(grues[j][i].getValue()<4) {
+					System.out.println("La grue "+j+" atiende a le naviere "+ grues[j][i].getValue());
 				}
 			}
-			if(imp) {
-				System.out.println();
-			}
+			System.out.println("-------------");
 		}
 	}
 	
 	public void go() {
 		lire();
 		constraints();
-		//fo();
-		//solver.showSolutions(); 
+		int tot = NB_GRUES*NB_TRACE+NB_TRACE+NB_OUVRIERS*NB_TRACE+NB_TRACE;
+		IntVar[] vars = new IntVar[tot];
+		int c = 0;
+		for (int i = 0; i < grues[0].length; i++) {
+			for (int j = 0; j < grues.length; j++) {
+				vars[c]=grues[j][i];
+				c++;
+			}
+		}
+		for (int i = 0; i < auxd.length; i++) {
+			vars[c]=auxd[i];
+			c++;
+		}
+		for (int i = 0; i < taille.length; i++) {
+			vars[c]=taille[i];
+			c++;
+		}
+		for (int i = 0; i < ouvriers.length; i++) {
+			for (int j = 0; j < ouvriers[0].length; j++) {
+				vars[c]=ouvriers[i][j];
+				c++;
+			}
+		}
+		solver.setSearch(activityBasedSearch(vars));
+		solver.showStatisticsDuringResolution(2000);
 		solver.findSolution();
-		solver.printStatistics();
-		
+		//solver.printStatistics();
 		print();
 	}
 	public static void main(String[] args) {
 		try {
 			Projet p= new Projet();
-			//p.go();
-			p.naviresordo();
+			p.go();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
