@@ -51,7 +51,7 @@ public class Generator {
                     .append(SEPARATOR)
                     .append(tailles[i])
                     .append(SEPARATOR)
-                    .append((int) floor(80 + random() * 2420))
+                    .append(randomValue(80, 2500))
                     .append('\n');
 
             writer.write(sb.toString());
@@ -64,7 +64,7 @@ public class Generator {
         int tailleMax = (int) floor(2.0 * tailleQuai / 3.0);
 
         int[] res = range(0, nbNavires)
-                .map(i -> (int) (2 + floor(random() * (tailleMax - 2))))
+                .map(i -> randomValue(2, tailleMax))
                 .toArray();
 
         int sommeTailles = stream(res)
@@ -74,10 +74,10 @@ public class Generator {
         int randIndex;
 
         while(sommeTailles > tailleQuai) {
-            randIndex = (int) floor(random() * nbNavires);
+            randIndex = randomValue(nbNavires);
 
             while (res[randIndex] <= 2) {
-                randIndex = (int) floor(random() * nbNavires);
+                randIndex = randomValue(nbNavires);
             }
 
             res[randIndex] --;
@@ -96,13 +96,21 @@ public class Generator {
         for (int i = 0; i < nbGrues; i++) {
             StringBuilder sb = new StringBuilder("" + i)
                     .append(SEPARATOR)
-                    .append((int) floor((15 + random() * 15) / 4))
+                    .append((int) floor(randomValue(15, 30) / 4))
                     .append('\n');
 
             writer.write(sb.toString());
         }
 
         writer.close();
+    }
+
+    private static int randomValue(int maxVal) {
+        return (int) floor(random() * maxVal);
+    }
+
+    private static int randomValue(int minVal, int maxVal) {
+        return minVal + randomValue(maxVal - minVal);
     }
 
     public static void clearProblemFiles(int idPb) {
