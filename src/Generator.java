@@ -49,7 +49,7 @@ public class Generator {
         for (int i = 0; i < nbNavires; i++) {
             StringBuilder sb = new StringBuilder("" + i)
                     .append(SEPARATOR)
-                    .append((int) floor(random() * 20))
+                    .append(tailles[i])
                     .append(SEPARATOR)
                     .append((int) floor(80 + random() * 2420))
                     .append('\n');
@@ -61,10 +61,10 @@ public class Generator {
     }
 
     private int[] generateTaillesNavires() {
-        int tailleMax = tailleQuai / 2;
+        int tailleMax = (int) floor(3.0 * tailleQuai / 4.0);
 
         int[] tailles = range(0, nbNavires)
-                .map(i -> (int) floor(random() * tailleMax))
+                .map(i -> (int) (2 + floor(random() * (tailleMax - 2))))
                 .toArray();
 
         int sommeTailles = stream(tailles)
@@ -75,6 +75,11 @@ public class Generator {
 
         while(sommeTailles > tailleQuai) {
             randIndex = (int) floor(random() * nbNavires);
+
+            while (tailles[randIndex] <= 2) {
+                randIndex = (int) floor(random() * nbNavires);
+            }
+
             tailles[randIndex] --;
             sommeTailles = stream(tailles)
                     .reduce((acc, val) -> acc + val)
@@ -91,7 +96,7 @@ public class Generator {
         for (int i = 0; i < nbGrues; i++) {
             StringBuilder sb = new StringBuilder("" + i)
                     .append(SEPARATOR)
-                    .append((int) floor(15 + random() * 15))
+                    .append((int) floor((15 + random() * 15) / 4))
                     .append('\n');
 
             writer.write(sb.toString());
@@ -116,7 +121,14 @@ public class Generator {
     }
 
     public static void main(String[] args) {
+        final int ID_PB = 2;
+        final int NB_NAVIRES = 10;
+        final int NB_GRUES = 8;
+        final int TAILLE_QUAI = 100;
+
+
         clearProblemData(2);
-        new Generator(2, 5, 8, 50).generate();
+        new Generator(ID_PB, NB_NAVIRES, NB_GRUES, TAILLE_QUAI)
+                .generate();
     }
 }
