@@ -8,15 +8,14 @@ import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.util.criteria.Criterion;
 import org.chocosolver.util.tools.ArrayUtils;
 
 public class Projet {
 	
 	private static final int NB_GRUES = 10;
-	private static final int NB_NAVIRES = 4;
-	private static final int NB_TRACE = 15;
-	private static final int TAILLE_QUAI = 40;
+	private static final int NB_NAVIRES = 5;
+	private static final int NB_TRACE = 72;
+	private static final int TAILLE_QUAI = 50;
 	private static final int NB_OUVRIERS = 12;
 	
 	private int [][] Navires;
@@ -163,6 +162,7 @@ public class Projet {
 		}
 	}
 	
+	//Function Objective pour diminuer le travail sur les navieres
 	public void fo() {
 		IntVar[] cdmu=model.intVarArray(NB_NAVIRES, 0, NB_TRACE);
 		for (int i = 0; i < Navires.length; i++) {
@@ -172,7 +172,7 @@ public class Projet {
 		model.sum(cdmu, "=", sum).post();
 		model.setObjective(false, sum);
 	}
-	
+	//Function Objective pour diminuer les traces utilises 
 	public void fo2() {
 		for (int i = 0; i < grues[0].length; i++) {
 			Constraint oui=model.arithm(auxd[i], "=", i);
@@ -180,8 +180,8 @@ public class Projet {
 			Constraint[] traces= new Constraint[NB_GRUES+1];
 			Constraint[] traces2= new Constraint[NB_GRUES+1];
 			for (int j = 0; j < grues.length; j++) {
-				Constraint aux= model.arithm(grues[j][i], "=", 4);
-				Constraint aux2= model.arithm(grues[j][i], "<", 4);
+				Constraint aux= model.arithm(grues[j][i], "=", NB_NAVIRES);
+				Constraint aux2= model.arithm(grues[j][i], "<", NB_NAVIRES);
 				traces[j]=aux;
 				traces2[j]=aux2;
 			}
