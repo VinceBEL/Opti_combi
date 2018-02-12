@@ -63,11 +63,11 @@ public class Generator {
     private int[] generateTaillesNavires() {
         int tailleMax = (int) floor(2.0 * tailleQuai / 3.0);
 
-        int[] tailles = range(0, nbNavires)
+        int[] res = range(0, nbNavires)
                 .map(i -> (int) (2 + floor(random() * (tailleMax - 2))))
                 .toArray();
 
-        int sommeTailles = stream(tailles)
+        int sommeTailles = stream(res)
                 .reduce((acc, val) -> acc + val)
                 .orElse(-1);
 
@@ -76,17 +76,17 @@ public class Generator {
         while(sommeTailles > tailleQuai) {
             randIndex = (int) floor(random() * nbNavires);
 
-            while (tailles[randIndex] <= 2) {
+            while (res[randIndex] <= 2) {
                 randIndex = (int) floor(random() * nbNavires);
             }
 
-            tailles[randIndex] --;
-            sommeTailles = stream(tailles)
+            res[randIndex] --;
+            sommeTailles = stream(res)
                     .reduce((acc, val) -> acc + val)
                     .getAsInt();
         }
 
-        return tailles;
+        return res;
     }
 
     private void generateGrues() throws IOException {
@@ -113,9 +113,9 @@ public class Generator {
             File file = new File(fileName);
 
             if (file.delete()) {
-                System.out.println(fileName.concat("was successfully deleted"));
+                System.out.println(fileName.concat(" was successfully deleted"));
             } else {
-                System.out.println("Failed to delete the file".concat(fileName));
+                System.out.println("Failed to delete the file ".concat(fileName));
             }
         }
     }
