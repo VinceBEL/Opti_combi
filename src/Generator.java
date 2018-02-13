@@ -58,6 +58,10 @@ public class Generator {
     public int getNbGrues() {
         return nbGrues;
     }
+    
+    public int getId() {
+    	return this.idPb;
+    }
 
     public void generate() {
         try {

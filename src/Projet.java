@@ -26,6 +26,7 @@ public class Projet {
 	private IntVar[][] ouvriers;
 	private IntVar[] taille;
 	private IntVar[] decht;
+	private Generator gen;
 	IntVar [] auxd;
 	IntVar total;
 	int iter=0;
@@ -48,10 +49,12 @@ public class Projet {
 		ouvriers=model.boolVarMatrix(NB_OUVRIERS, NB_TRACE);
 		auxd=model.intVarArray(NB_TRACE, 0, NB_TRACE);
 		total=model.intVar(0, 9999999);
+		gen= new Generator(2, 5, 10, 50);
+		gen.generate();
 	}
 	
 	public void lireNavires() {
-		File file = new File("./data/navires.csv");
+		File file = new File("./data/navires2.csv");
 		BufferedReader buf;
 		try {
 			buf = new BufferedReader(new FileReader(file));
@@ -76,7 +79,7 @@ public class Projet {
 	}
 	
 	public void lireGrues() {
-		File file = new File("./data/grues.csv");
+		File file = new File("./data/grues2.csv");
 		BufferedReader buf;
 		try {
 			buf = new BufferedReader(new FileReader(file));
@@ -162,6 +165,28 @@ public class Projet {
 		}
 	}
 	
+	//Constrainte de RH max 4 h
+	
+	public void constrainte4() {
+		for (int i = 0; i < ouvriers.length; i++) {
+			for (int j = 0; j < ouvriers[0].length-16; j++) {
+				IntVar [] aux= protrace(i, j);
+				IntVar limit=model.intVar(0, 16);
+				model.count(NB_NAVIRES, aux, limit).post();
+				model.arithm(limit, ">=", 1).post();
+			}
+		}
+	}
+	
+	public IntVar[] protrace(int ii,int j) {
+		IntVar[] aux= new IntVar[16];
+		aux[0]=this.ouvriers[ii][j];
+		for (int i = 1; i < aux.length; i++) {
+			aux[i]=this.ouvriers[ii][j];
+		}
+		return aux;
+	}
+	
 	//Function Objective pour diminuer le travail sur les navieres
 	public void fo() {
 		IntVar[] cdmu=model.intVarArray(NB_NAVIRES, 0, NB_TRACE);
@@ -202,6 +227,7 @@ public class Projet {
 		constrainte1();
 		constrainte2();
 		constrainte3();
+		//constrainte4(); Ne functione pas sur tous les problemes 
 		fo2();
 		fo();
 	}
@@ -252,7 +278,7 @@ public class Projet {
 		solver.setSearch(activityBasedSearch(vars));
 		solver.showStatisticsDuringResolution(2000);
 		solver.findSolution();
-		//solver.printStatistics();
+		solver.printStatistics();
 		print();
 	}
 	public static void main(String[] args) {
