@@ -38,13 +38,25 @@ public class Generator {
         if (nbNavires < 3 || nbNavires > 12) {
             throw new InvalidParameterException("nbNavires doit être compris entre 3 et 12. Valeur donnée : " + nbNavires);
         } else if (nbGrues < 6 || nbGrues > 10) {
-            throw new InvalidParameterException("nbGrues doit être compris entre 15 et 30. Valeur donnée : " + nbGrues);
+            throw new InvalidParameterException("nbGrues doit être compris entre 6 et 10. Valeur donnée : " + nbGrues);
         } else {
             this.idPb = idPb;
             this.nbNavires = nbNavires;
             this.nbGrues = nbGrues;
             this.tailleQuai = tailleQuai;
         }
+    }
+
+    public Generator(int idPb, int tailleQuai) {
+        this(idPb, randomValue(3, 12), randomValue(6, 10), tailleQuai);
+    }
+
+    public int getNbNavires() {
+        return nbNavires;
+    }
+
+    public int getNbGrues() {
+        return nbGrues;
     }
 
     public void generate() {
