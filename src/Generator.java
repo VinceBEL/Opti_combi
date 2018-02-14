@@ -19,9 +19,9 @@ public class Generator {
 
         clearProblemFiles(2);
 
-
-        new Generator(ID_PB, TAILLE_QUAI)
-                .generate();
+//
+//        new Generator(ID_PB, TAILLE_QUAI)
+//                .generate();
 
         new Generator(ID_PB, NB_NAVIRES, NB_GRUES, TAILLE_QUAI)
                 .generate();
