@@ -14,7 +14,7 @@ public class Projet {
 	
 	private static final int NB_GRUES = 10;
 	private static final int NB_NAVIRES = 5;
-	private static final int NB_TRACE = 25;
+	private static final int NB_TRACE = 80;
 	private static final int TAILLE_QUAI = 50;
 	private static final int NB_OUVRIERS = 12;
 	
@@ -49,8 +49,8 @@ public class Projet {
 		ouvriers=model.boolVarMatrix(NB_OUVRIERS, NB_TRACE);
 		auxd=model.intVarArray(NB_TRACE, 0, NB_TRACE);
 		total=model.intVar(0, 9999999);
-//		gen= new Generator(2, 5, 10, 50);
-//		gen.generate();
+		gen= new Generator(2, 5, 10, 50);
+		gen.generate();
 	}
 	
 	public void lireNavires() {
@@ -168,8 +168,8 @@ public class Projet {
 	//Constrainte de RH max 4 h
 	
 	public void constrainte4() {
-		for (int i = 0; i < ouvriers.length; i++) {
-			for (int j = 0; j < ouvriers[0].length-16; j++) {
+		for (int i = 0; i < grues.length; i++) {
+			for (int j = 0; j < grues[0].length-16; j++) {
 				IntVar [] aux= protrace(i, j);
 				IntVar limit=model.intVar(0, 16);
 				model.count(NB_NAVIRES, aux, limit).post();
@@ -180,9 +180,9 @@ public class Projet {
 	
 	public IntVar[] protrace(int ii,int j) {
 		IntVar[] aux= new IntVar[16];
-		aux[0]=this.ouvriers[ii][j];
+		aux[0]=this.grues[ii][j];
 		for (int i = 1; i < aux.length; i++) {
-			aux[i]=this.ouvriers[ii][j];
+			aux[i]=this.grues[ii][j];
 		}
 		return aux;
 	}
@@ -227,7 +227,7 @@ public class Projet {
 		constrainte1();
 		constrainte2();
 		constrainte3();
-		//constrainte4(); Ne functione pas sur tous les problemes 
+		constrainte4(); 
 		fo2();
 		fo();
 	}
