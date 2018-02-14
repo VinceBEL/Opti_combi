@@ -18,6 +18,11 @@ public class Generator {
 
 
         clearProblemFiles(2);
+
+
+        new Generator(ID_PB, TAILLE_QUAI)
+                .generate();
+
         new Generator(ID_PB, NB_NAVIRES, NB_GRUES, TAILLE_QUAI)
                 .generate();
     }
@@ -32,6 +37,7 @@ public class Generator {
     private int nbNavires;
     private int nbGrues;
     private int tailleQuai;
+    private int[] tailles;
 
 
     public Generator(int idPb, int nbNavires, int nbGrues, int tailleQuai) {
@@ -44,11 +50,42 @@ public class Generator {
             this.nbNavires = nbNavires;
             this.nbGrues = nbGrues;
             this.tailleQuai = tailleQuai;
+            this.tailles = generateTaillesNavires();
         }
     }
 
     public Generator(int idPb, int tailleQuai) {
         this(idPb, randomValue(3, 12), randomValue(6, 10), tailleQuai);
+    }
+
+
+    private int[] generateTaillesNavires() {
+        int tailleMax = (int) floor(2.0 * tailleQuai / 3.0);
+
+        int[] res = range(0, nbNavires)
+                .map(i -> randomValue(2, tailleMax))
+                .toArray();
+
+        int sommeTailles = stream(res)
+                .reduce((acc, val) -> acc + val)
+                .orElse(-1);
+
+        int randIndex;
+
+        while(5 * sommeTailles / nbNavires > tailleQuai) {
+            randIndex = randomValue(nbNavires);
+
+            while (res[randIndex] <= 2) {
+                randIndex = randomValue(nbNavires);
+            }
+
+            res[randIndex] --;
+            sommeTailles = stream(res)
+                    .reduce((acc, val) -> acc + val)
+                    .getAsInt();
+        }
+
+        return res;
     }
 
     public int getNbNavires() {
@@ -76,8 +113,6 @@ public class Generator {
         FileWriter writer = new FileWriter(OUTPUT_DIRECTORY.concat("navires" + idPb).concat(".csv"));
         writer.write("id,taille,capacite\n");
 
-        int[] tailles = generateTaillesNavires();
-
         for (int i = 0; i < nbNavires; i++) {
             StringBuilder sb = new StringBuilder("" + i)
                     .append(SEPARATOR)
@@ -90,35 +125,6 @@ public class Generator {
         }
 
         writer.close();
-    }
-
-    private int[] generateTaillesNavires() {
-        int tailleMax = (int) floor(2.0 * tailleQuai / 3.0);
-
-        int[] res = range(0, nbNavires)
-                .map(i -> randomValue(2, tailleMax))
-                .toArray();
-
-        int sommeTailles = stream(res)
-                .reduce((acc, val) -> acc + val)
-                .orElse(-1);
-
-        int randIndex;
-
-        while(sommeTailles > tailleQuai) {
-            randIndex = randomValue(nbNavires);
-
-            while (res[randIndex] <= 2) {
-                randIndex = randomValue(nbNavires);
-            }
-
-            res[randIndex] --;
-            sommeTailles = stream(res)
-                    .reduce((acc, val) -> acc + val)
-                    .getAsInt();
-        }
-
-        return res;
     }
 
     private void generateGrues() throws IOException {
