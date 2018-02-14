@@ -14,7 +14,7 @@ public class Projet {
 	
 	private static final int NB_GRUES = 10;
 	private static final int NB_NAVIRES = 5;
-	private static final int NB_TRACE = 72;
+	private static final int NB_TRACE = 25;
 	private static final int TAILLE_QUAI = 50;
 	private static final int NB_OUVRIERS = 12;
 	
@@ -49,8 +49,8 @@ public class Projet {
 		ouvriers=model.boolVarMatrix(NB_OUVRIERS, NB_TRACE);
 		auxd=model.intVarArray(NB_TRACE, 0, NB_TRACE);
 		total=model.intVar(0, 9999999);
-		gen= new Generator(2, 5, 10, 50);
-		gen.generate();
+//		gen= new Generator(2, 5, 10, 50);
+//		gen.generate();
 	}
 	
 	public void lireNavires() {
@@ -235,14 +235,14 @@ public class Projet {
 	public void print() {
 		
 		for(int i=0;i<decht.length;i++) {
-			System.out.println("Le total decharge sur le naviere "+i+" est de : "+decht[i].getValue()+" sur un total de: "+Navires[i][2]);
+			System.out.println("Le total decharge sur le navire "+i+" est de : "+decht[i].getValue()+" sur un total de: "+Navires[i][2]);
 		}
 		System.out.println("-------------");
 		for(int i=0;i<grues[0].length;i++) {
-			System.out.println("Dans la trace "+i+ " le espace utilise est: "+ taille[i].getValue());
+			System.out.println("Dans la trace "+i+ " l'espace utilisé est: "+ taille[i].getValue());
 			for(int j=0;j<grues.length;j++) {
 				if(grues[j][i].getValue()<4) {
-					System.out.println("La grue "+j+" atiende a le naviere "+ grues[j][i].getValue());
+					System.out.println("La grue "+j+" decharge le navire "+ grues[j][i].getValue());
 				}
 			}
 			System.out.println("-------------");
