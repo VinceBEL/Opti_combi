@@ -227,7 +227,7 @@ public class Projet {
 		constrainte1();
 		constrainte2();
 		constrainte3();
-		constrainte4(); 
+		//constrainte4(); //Ne function pas sur tous les problemes  
 		fo2();
 		fo();
 	}
